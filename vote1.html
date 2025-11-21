@@ -1,0 +1,324 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <title>간단 웹 투표 시스템 데모</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: #f4f4f5;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 24px 20px 28px;
+            max-width: 480px;
+            width: 100%;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.1);
+        }
+
+        h1 {
+            font-size: 1.3rem;
+            margin: 0 0 12px;
+            text-align: center;
+        }
+
+        p.description {
+            margin: 0 0 20px;
+            font-size: 0.9rem;
+            color: #6b7280;
+            text-align: center;
+        }
+
+        form {
+            margin-bottom: 20px;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 10px;
+            border-radius: 8px;
+            transition: background 0.15s ease;
+            cursor: pointer;
+        }
+
+            .option:hover {
+                background: #f3f4ff;
+            }
+
+            .option input {
+                accent-color: #4f46e5;
+            }
+
+            .option span {
+                font-size: 0.95rem;
+            }
+
+        button[type="submit"] {
+            width: 100%;
+            margin-top: 10px;
+            padding: 10px 12px;
+            border-radius: 999px;
+            border: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            background: #4f46e5;
+            color: white;
+            box-shadow: 0 8px 16px rgba(79, 70, 229, 0.25);
+            transition: transform 0.1s ease, box-shadow 0.1s ease, opacity 0.2s ease;
+        }
+
+            button[type="submit"]:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3);
+            }
+
+            button[type="submit"]:active {
+                transform: translateY(0);
+                box-shadow: 0 5px 12px rgba(79, 70, 229, 0.25);
+            }
+
+            button[type="submit"]:disabled {
+                opacity: 0.55;
+                cursor: not-allowed;
+                box-shadow: none;
+                transform: none;
+            }
+
+        .status {
+            font-size: 0.85rem;
+            margin-top: 6px;
+            color: #6b7280;
+        }
+
+            .status strong {
+                color: #4f46e5;
+            }
+
+        .results {
+            border-top: 1px solid #e5e7eb;
+            padding-top: 16px;
+            margin-top: 8px;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+            color: #4b5563;
+        }
+
+        .result-row {
+            margin-bottom: 8px;
+        }
+
+        .result-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.82rem;
+            margin-bottom: 4px;
+            color: #374151;
+        }
+
+        .bar-track {
+            width: 100%;
+            height: 12px;
+            border-radius: 999px;
+            background: #e5e7eb;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            width: 0%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, #4f46e5, #6366f1);
+            transition: width 0.25s ease;
+        }
+
+        .footer-text {
+            margin-top: 10px;
+            font-size: 0.75rem;
+            color: #9ca3af;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>투표: 다음 여행지로 가장 가고 싶은 곳은?</h1>
+        <p class="description">하나를 선택하시고 투표하기 버튼을 눌러 주세요.</p>
+
+        <!-- 이 폼과 버튼은 그대로 두시면 됩니다. -->
+        <form id="vote-form">
+            <label class="option">
+                <input type="radio" name="choice" value="japan" />
+                <span>일본 (후쿠오카, 오사카, 도쿄 등)</span>
+            </label>
+            <label class="option">
+                <input type="radio" name="choice" value="sea" />
+                <span>동남아 (태국, 베트남, 말레이시아 등)</span>
+            </label>
+            <label class="option">
+                <input type="radio" name="choice" value="europe" />
+                <span>유럽 (프랑스, 이탈리아, 스페인 등)</span>
+            </label>
+
+            <button type="submit">투표하기</button>
+            <div class="status" id="status-text">
+                아직 투표 전입니다.
+            </div>
+        </form>
+
+        <div class="results" id="results-section">
+            <div class="results-header">
+                <span>현재 결과 (이 브라우저에서만 집계)</span>
+                <span id="total-votes">총 0표</span>
+            </div>
+
+            <div class="result-row">
+                <div class="result-label">
+                    <span>일본</span>
+                    <span><span id="count-japan">0</span>표 · <span id="percent-japan">0</span>%</span>
+                </div>
+                <div class="bar-track">
+                    <div class="bar-fill" id="bar-japan"></div>
+                </div>
+            </div>
+
+            <div class="result-row">
+                <div class="result-label">
+                    <span>동남아</span>
+                    <span><span id="count-sea">0</span>표 · <span id="percent-sea">0</span>%</span>
+                </div>
+                <div class="bar-track">
+                    <div class="bar-fill" id="bar-sea"></div>
+                </div>
+            </div>
+
+            <div class="result-row">
+                <div class="result-label">
+                    <span>유럽</span>
+                    <span><span id="count-europe">0</span>표 · <span id="percent-europe">0</span>%</span>
+                </div>
+                <div class="bar-track">
+                    <div class="bar-fill" id="bar-europe"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-text">
+            실제 투표 기록은 구글 스프레드시트에 저장됩니다.
+        </div>
+    </div>
+
+    <script>
+        // ★ 여기를 본인 Apps Script URL로 설정하세요 ★
+        const VOTE_API_URL = 'https://script.google.com/macros/s/AKfycbzOxKKv14jjAajuFpusrA23Niu2ykhbjGG6fcAlfsBqr9-G_0o53Qq8jvnnyIGr19MyYw/exec';
+
+        // 이 브라우저(세션)에서만 사용하는 카운트
+        const counts = {
+            japan: 0,
+            sea: 0,
+            europe: 0
+        };
+
+        function updateResults() {
+            const total = counts.japan + counts.sea + counts.europe;
+            document.getElementById('total-votes').textContent = `총 ${total}표`;
+
+            function setRow(countId, percentId, barId, count) {
+                const percent = total > 0 ? Math.round((count / total) * 100) : 0;
+                document.getElementById(countId).textContent = count;
+                document.getElementById(percentId).textContent = percent;
+                document.getElementById(barId).style.width = percent + '%';
+            }
+
+            setRow('count-japan', 'percent-japan', 'bar-japan', counts.japan);
+            setRow('count-sea', 'percent-sea', 'bar-sea', counts.sea);
+            setRow('count-europe', 'percent-europe', 'bar-europe', counts.europe);
+        }
+
+        // 라디오 버튼에서 선택값 가져오기
+        function getSelectedChoice() {
+            const radios = document.querySelectorAll('input[name="choice"]');
+            for (const r of radios) {
+                if (r.checked) return r.value;
+            }
+            return null;
+        }
+
+        // 구글 Apps Script(스프레드시트)로 전송
+        async function sendVoteToServer(choice) {
+            const res = await fetch(VOTE_API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    choice: choice,
+                    userId: ''   // 필요하면 여기에 나중에 별명 등 추가 가능
+                })
+            });
+
+            const json = await res.json();
+            if (!json.ok) {
+                throw new Error(json.error || '서버 오류');
+            }
+        }
+
+        async function handleSubmit(event) {
+            event.preventDefault(); // 폼의 기본 제출 막기
+
+            const choice = getSelectedChoice();
+            if (!choice) {
+                alert('하나를 선택해 주세요.');
+                return;
+            }
+
+            const button = document.querySelector('#vote-form button[type="submit"]');
+            const status = document.getElementById('status-text');
+
+            try {
+                button.disabled = true;
+                status.textContent = '투표를 전송하는 중입니다...';
+
+                // 1) 스프레드시트에 저장
+                await sendVoteToServer(choice);
+
+                // 2) 이 브라우저 내 결과 업데이트
+                counts[choice]++;
+                updateResults();
+
+                status.innerHTML = '<strong>투표가 완료되었습니다.</strong> 감사합니다!';
+            } catch (e) {
+                console.error(e);
+                alert('서버에 저장하는 중 문제가 생겼습니다. 잠시 후 다시 시도해 주세요.');
+                status.textContent = '오류가 발생했습니다. 다시 시도해 주세요.';
+            } finally {
+                button.disabled = false;
+            }
+        }
+
+        // 폼 submit 이벤트에 자바스크립트 연결
+        document.getElementById('vote-form').addEventListener('submit', handleSubmit);
+
+        // 처음 화면 표시용
+        updateResults();
+    </script>
+</body>
+</html>
