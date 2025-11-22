@@ -220,13 +220,13 @@
 
         // 공통 앞부분
         let msg =
-          `<strong>${name}</strong> 님의 선택(<strong>${attend}</strong>)이 저장되었습니다. `;
+          `<strong>${name}</strong> 님의 선택(<strong>${attend}</strong>)이 저장되었습니다.<br /> `;
 
         // 리셋 전/후에 따라 뒷부분만 변경
         if (IS_FINAL) {
           msg += '참석 여부가 확정되었습니다.';
         } else {
-          msg += '필요하면 다시 수정할 수 있습니다.';
+          msg += '마감 전까지는 수정할 수 있습니다.';
         }
 
         status.innerHTML = msg;
@@ -246,3 +246,4 @@
   </script>
 </body>
 </html>
+
