@@ -5,10 +5,7 @@
   <title>골프 참석 투표</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
+    * { box-sizing: border-box; }
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background: #f4f4f5;
@@ -19,7 +16,6 @@
       justify-content: center;
       min-height: 100vh;
     }
-
     .container {
       background: #ffffff;
       border-radius: 16px;
@@ -28,35 +24,24 @@
       width: 100%;
       box-shadow: 0 10px 30px rgba(15, 23, 42, 0.1);
     }
-
     h1 {
       font-size: 1.3rem;
       margin: 0 0 12px;
       text-align: center;
     }
-
     p.description {
       margin: 0 0 20px;
       font-size: 0.9rem;
       color: #6b7280;
       text-align: center;
     }
-
-    form {
-      margin-bottom: 20px;
-    }
-
-    .field {
-      margin-bottom: 12px;
-    }
-
+    .field { margin-bottom: 12px; }
     .field label {
       display: block;
       font-size: 0.85rem;
       margin-bottom: 4px;
       color: #4b5563;
     }
-
     .field input[type="text"] {
       width: 100%;
       padding: 8px 10px;
@@ -64,25 +49,21 @@
       border: 1px solid #d1d5db;
       font-size: 0.95rem;
     }
-
     .option-row {
       display: flex;
       gap: 16px;
       margin-top: 4px;
       font-size: 0.9rem;
     }
-
     .option-row label {
       display: flex;
       align-items: center;
       gap: 6px;
       cursor: pointer;
     }
-
     .option-row input[type="radio"] {
       accent-color: #4f46e5;
     }
-
     button[type="submit"] {
       width: 100%;
       margin-top: 14px;
@@ -95,213 +76,109 @@
       background: #4f46e5;
       color: white;
       box-shadow: 0 8px 16px rgba(79, 70, 229, 0.25);
-      transition: transform 0.1s ease, box-shadow 0.1s ease, opacity 0.2s ease;
     }
-
-    button[type="submit"]:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3);
-    }
-
-    button[type="submit"]:active {
-      transform: translateY(0);
-      box-shadow: 0 5px 12px rgba(79, 70, 229, 0.25);
-    }
-
-    button[type="submit"]:disabled {
-      opacity: 0.55;
-      cursor: not-allowed;
-      box-shadow: none;
-      transform: none;
-    }
-
     .status {
       font-size: 0.85rem;
-      margin-top: 8px;
-      color: #6b7280;
+      margin-top: 14px;
       text-align: center;
-    }
-
-    .status strong {
-      color: #4f46e5;
+      color: #6b7280;
     }
   </style>
 </head>
+
 <body>
   <div class="container">
     <h1>골프 참석여부 투표</h1>
-    <p class="description">
-      이름을 입력하시고 참석 / 불참을 선택한 뒤<br />
-      <strong>투표하기</strong> 버튼을 눌러 주세요.
-    </p>
 
-    <!-- 여기에 JS가 로딩/폼/마감 화면을 넣습니다 -->
+    <!-- JS가 이 위치에 화면을 렌더링 -->
     <div id="app">
-      <div class="status">
-        서버 상태를 확인하는 중입니다...
-      </div>
+      <div class="status">투표가 마감되었거나 아직 시작되지 않았습니다.</div>
     </div>
   </div>
 
-  <script>
-    // ★ Bek님 Apps Script 웹앱 URL
-    const SCRIPT_URL =
-      'https://script.google.com/macros/s/AKfycbzOxKKv14jjAajuFpusrA23Niu2ykhbjGG6fcAlfsBqr9-G_0o53Qq8jvnnyIGr19MyYw/exec';
+<script>
+  const SCRIPT_URL =
+    "https://script.google.com/macros/s/AKfycbzOxKKv14jjAajuFpusrA23Niu2ykhbjGG6fcAlfsBqr9-G_0o53Qq8jvnnyIGr19MyYw/exec";
 
-    // ---- 공통 함수들 ----
-    function getSelectedAttend() {
-      const radios = document.querySelectorAll('input[name="attend"]');
-      for (const r of radios) {
-        if (r.checked) return r.value;
-      }
-      return null;
-    }
+  async function fetchStatus() {
+    const res = await fetch(SCRIPT_URL + "?mode=status", { method: "GET", cache: "no-store" });
+    return res.json(); // { ok:true, status:"start" }
+  }
 
-    async function fetchStatus() {
-      const res = await fetch(SCRIPT_URL + '?mode=status', {
-        method: 'GET',
-        cache: 'no-store'
-      });
-      return res.json();  // { ok:true, status:'start' }
-    }
+  async function sendVoteToServer(name, attend) {
+    const params = new URLSearchParams({ name, attend });
+    const res = await fetch(SCRIPT_URL, { method: "POST", body: params });
+    return res.json();
+  }
 
-    async function sendVoteToServer(name, attend) {
-      const params = new URLSearchParams();
-      params.append('name', name);
-      params.append('attend', attend);
+  function renderClosed() {
+    document.getElementById("app").innerHTML =
+      `<div class="status">투표가 <strong>마감</strong>되었거나 아직 시작되지 않았습니다.</div>`;
+  }
 
-      const res = await fetch(SCRIPT_URL, {
-        method: 'POST',
-        body: params   // application/x-www-form-urlencoded
-      });
-      return res.json();  // { ok:true } 또는 { ok:false, error:'CLOSED' }
-    }
-
-    // ---- 화면 렌더링 ----
-    function renderClosed() {
-      const app = document.getElementById('app');
-      app.innerHTML = `
-        <div class="status">
-          투표가 <strong>마감</strong>되었거나 아직 시작되지 않았습니다.
+  function renderForm() {
+    document.getElementById("app").innerHTML = `
+      <form id="vote-form">
+        <div class="field">
+          <label>이름</label>
+          <input type="text" id="username" placeholder="예: 박세리" required />
         </div>
-      `;
-    }
 
-    function renderForm() {
-      const app = document.getElementById('app');
-      app.innerHTML = `
-        <form id="vote-form">
-          <div class="field">
-            <label for="username">이름</label>
-            <input type="text" id="username" placeholder="예: 박세리" required />
+        <div class="field">
+          <label>참석 여부</label>
+          <div class="option-row">
+            <label><input type="radio" name="attend" value="참석"> 참석</label>
+            <label><input type="radio" name="attend" value="불참"> 불참</label>
           </div>
-
-          <div class="field">
-            <label>참석 여부</label>
-            <div class="option-row">
-              <label>
-                <input type="radio" name="attend" value="참석" />
-                참석
-              </label>
-              <label>
-                <input type="radio" name="attend" value="불참" />
-                불참
-              </label>
-            </div>
-          </div>
-
-          <button type="submit" id="submit-btn">투표하기</button>
-          <div class="status" id="status-text">
-            아직 투표 전입니다.
-          </div>
-        </form>
-      `;
-
-      document
-        .getElementById('vote-form')
-        .addEventListener('submit', handleSubmit);
-    }
-
-    // ---- 이벤트 핸들러 ----
-    async function handleSubmit(event) {
-      event.preventDefault();
-
-      const nameInput = document.getElementById('username');
-      const name = nameInput.value.trim();
-      const attend = getSelectedAttend();
-      const button = document.getElementById('submit-btn');
-      const status = document.getElementById('status-text');
-
-      if (!name) {
-        alert('이름을 입력해 주세요.');
-        nameInput.focus();
-        return;
-      }
-      if (!attend) {
-        alert('참석 / 불참 중 하나를 선택해 주세요.');
-        return;
-      }
-
-      try {
-        button.disabled = true;
-        status.textContent = '투표를 전송하는 중입니다...';
-
-        const result = await sendVoteToServer(name, attend);
-
-        // 서버에서 이미 CLOSED 라고 응답한 경우
-        if (!result.ok && result.error === 'CLOSED') {
-          renderClosed();
-          return;
-        }
-        if (!result.ok) {
-          throw new Error(result.error || 'UNKNOWN_ERROR');
-        }
-
-        let msg =
-          `<strong>${name}</strong> 님의 선택(<strong>${attend}</strong>)이 저장되었습니다.<br />` +
-          '마감 전까지는 수정할 수 있습니다.';
-        status.innerHTML = msg;
-
-      } catch (e) {
-        console.error(e);
-        status.textContent =
-          '서버에 문제가 발생했습니다. 잠시 후 새로고침 후 다시 시도해 주세요.';
-      } finally {
-        if (document.getElementById('submit-btn')) {
-          document.getElementById('submit-btn').disabled = false;
-        }
-      }
-    }
-
-    // ---- 최초 로딩: 상태 확인 후 화면 결정 ----
-    async function init() {
-      const app = document.getElementById('app');
-      app.innerHTML = `
-        <div class="status">
-          서버 상태를 확인하는 중입니다...
         </div>
-      `;
 
-      try {
-        const data = await fetchStatus();  // { ok, status }
+        <button type="submit">투표하기</button>
+        <div class="status" id="status-text">아직 투표 전입니다.</div>
+      </form>
+    `;
 
-        if (data.ok && data.status === 'start') {
-          renderForm();      // 투표 열림 → 폼 표시
-        } else {
-          renderClosed();    // 그 외 → 마감 화면
-        }
-      } catch (e) {
-        console.error(e);
-        app.innerHTML = `
-          <div class="status">
-            서버 상태를 확인하지 못했습니다.<br />
-            잠시 후 새로고침(F5) 해 주세요.
-          </div>
-        `;
-      }
+    document.getElementById("vote-form").addEventListener("submit", handleSubmit);
+  }
+
+  function getAttend() {
+    const r = document.querySelector("input[name='attend']:checked");
+    return r ? r.value : null;
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+
+    const name = document.getElementById("username").value.trim();
+    const attend = getAttend();
+    const status = document.getElementById("status-text");
+
+    if (!name) return alert("이름을 입력해 주세요.");
+    if (!attend) return alert("참석 여부를 선택해 주세요.");
+
+    status.textContent = "투표 전송 중…";
+
+    const result = await sendVoteToServer(name, attend);
+
+    if (!result.ok && result.error === "CLOSED") {
+      renderClosed();
+      return;
     }
 
-    window.addEventListener('DOMContentLoaded', init);
-  </script>
+    status.innerHTML =
+      `<strong>${name}</strong> 님의 선택(<strong>${attend}</strong>)이 저장되었습니다.<br>마감 전까지 수정 가능합니다.`;
+  }
+
+  async function init() {
+    try {
+      const data = await fetchStatus();
+      if (data.ok && data.status === "start") renderForm();
+      else renderClosed();
+    } catch (err) {
+      renderClosed(); // 서버 오류도 마감 표시로 처리
+    }
+  }
+
+  window.addEventListener("DOMContentLoaded", init);
+</script>
 </body>
 </html>
