@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8" />
@@ -56,17 +56,17 @@
             cursor: pointer;
         }
 
-            .option:hover {
-                background: #f3f4ff;
-            }
+        .option:hover {
+            background: #f3f4ff;
+        }
 
-            .option input {
-                accent-color: #4f46e5;
-            }
+        .option input {
+            accent-color: #4f46e5;
+        }
 
-            .option span {
-                font-size: 0.95rem;
-            }
+        .option span {
+            font-size: 0.95rem;
+        }
 
         button[type="submit"] {
             width: 100%;
@@ -83,22 +83,22 @@
             transition: transform 0.1s ease, box-shadow 0.1s ease, opacity 0.2s ease;
         }
 
-            button[type="submit"]:hover {
-                transform: translateY(-1px);
-                box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3);
-            }
+        button[type="submit"]:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3);
+        }
 
-            button[type="submit"]:active {
-                transform: translateY(0);
-                box-shadow: 0 5px 12px rgba(79, 70, 229, 0.25);
-            }
+        button[type="submit"]:active {
+            transform: translateY(0);
+            box-shadow: 0 5px 12px rgba(79, 70, 229, 0.25);
+        }
 
-            button[type="submit"]:disabled {
-                opacity: 0.55;
-                cursor: not-allowed;
-                box-shadow: none;
-                transform: none;
-            }
+        button[type="submit"]:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
 
         .status {
             font-size: 0.85rem;
@@ -106,9 +106,9 @@
             color: #6b7280;
         }
 
-            .status strong {
-                color: #4f46e5;
-            }
+        .status strong {
+            color: #4f46e5;
+        }
 
         .results {
             border-top: 1px solid #e5e7eb;
@@ -165,7 +165,6 @@
         <h1>투표: 다음 여행지로 가장 가고 싶은 곳은?</h1>
         <p class="description">하나를 선택하시고 투표하기 버튼을 눌러 주세요.</p>
 
-        <!-- 이 폼과 버튼은 그대로 두시면 됩니다. -->
         <form id="vote-form">
             <label class="option">
                 <input type="radio" name="choice" value="japan" />
@@ -229,8 +228,9 @@
     </div>
 
     <script>
-        // ★ 여기를 본인 Apps Script URL로 설정하세요 ★
-        const VOTE_API_URL = 'https://script.google.com/macros/s/AKfycbzOxKKv14jjAajuFpusrA23Niu2ykhbjGG6fcAlfsBqr9-G_0o53Qq8jvnnyIGr19MyYw/exec';
+        // ★ 본인 Apps Script 웹앱 URL
+        const VOTE_API_URL =
+          'https://script.google.com/macros/s/AKfycbzOxKKv14jjAajuFpusrA23Niu2ykhbjGG6fcAlfsBqr9-G_0o53Qq8jvnnyIGr19MyYw/exec';
 
         // 이 브라우저(세션)에서만 사용하는 카운트
         const counts = {
@@ -264,21 +264,16 @@
             return null;
         }
 
-        // 구글 Apps Script(스프레드시트)로 전송 (CORS 우회용)
+        // 구글 Apps Script(스프레드시트)로 전송 – 폼 방식 + no-cors
         async function sendVoteToServer(choice) {
-            // mode: 'no-cors' 를 사용해서 브라우저 CORS 에러를 막습니다.
-            // 응답(JSON)은 읽지 않고, 요청만 보내는 방식입니다.
+            const params = new URLSearchParams();
+            params.append('choice', choice);
+            params.append('userId', '');
+
             await fetch(VOTE_API_URL, {
                 method: 'POST',
-                mode: 'no-cors',
-                headers: {
-                    // JSON 문자열을 그냥 텍스트로 보냅니다.
-                    'Content-Type': 'text/plain;charset=utf-8'
-                },
-                body: JSON.stringify({
-                    choice: choice,
-                    userId: ''
-                })
+                mode: 'no-cors',   // 응답은 안 읽고, 요청만 보내기
+                body: params       // application/x-www-form-urlencoded 형식
             });
         }
 
@@ -323,4 +318,3 @@
     </script>
 </body>
 </html>
-
